@@ -10,8 +10,11 @@ import os
 import numpy as np
 from netCDF4 import Dataset
 import xarray as xr
-from kmeans_ci2 import kmeans_ci, stan, nan_mean, nan_std
 from sklearn.cluster import KMeans
+from kmeans_ci2 import kmeans_ci
+import pandas as pd
+import matplotlib.pyplot as plt
+from ar1rand_func import ar1rand
 
 #Define the map2mat function we will use to arrange the data
 def map2mat(F,C):
@@ -96,7 +99,7 @@ multi = np.concatenate((h500u,mslpu,u850u,v850u),1)
 
 #Standardize the value at each gridpoint to make sure our clustering isn't influenced by higher values of mslp and h500
 nan_mean = np.nanmean(multi,axis=0)
-nan_std = np.nanstd(multi,axis=0)
+nan_std = np.nanstd(multi,axis=0,ddof=1)
 multi_s = (multi - nan_mean) / nan_std
 
 #Replace any nan values with 0
@@ -124,96 +127,101 @@ g = input('Perform k-means on ' + str(nr) + ' dates, ' + str(nc) + ' variables? 
 if(g == 'N'):
     print('Ending Clustering')
 else:
-    if os.path.exists(outdir + '/CI_results.mat'):
-        #tmp = np.load(outdir + '/CI_results.mat')
-        #CI = tmp.CI;
+    if os.path.exists(outdir + '/CI_results.nc'):
+        tmp = xr.open_dataset(outdir + '/CI_results.nc')
+        CI = tmp.CI
         #K = tmp.K;
         #D = tmp.D;
-        pass
-
     else:
         k_over = np.zeros((3640,10))
         ci_over = np.zeros(10)
         for n in range(1, maxclust+1,1):
             print('k=%d' % n)
-            stand = None
-            prop = None
-            if stand != None:
-                X = stan(X, stand)
-            X = tmpu
-            R = X.shape[0]
-            C = X.shape[1]
-            nclus = n
-            nsim = 100
+            k, ci = kmeans_ci(tmpu,None,None,None,n,100)
+            k_over[:,n-1] = np.squeeze(k)
+            ci_over[n-1] = ci
+        #Now save to a netcdf file
+        k_df = pd.DataFrame(k_over,columns=['k=1','k=2','k=3','k=4','k=5','k=6','k=7','k=8','k=9','k=10'])
+        ci_df = pd.DataFrame(ci_over,columns=['CI'])
+        k_df['CI'] =ci_df
+        k_xr = k_df.to_xarray()
+        k_xr.to_netcdf(outdir + '/CI_results.nc')
+        CI = ci_df
+    CI = CI.to_dataframe()
+    CI.index = np.arange(1,len(CI)+1)
+    ax = CI.plot()
+    ax.set_ylabel('CI')
+    ax.set_xlabel('Cluster')
+    ax.set_title('CI Values')
+    ax.set_xlim(1,maxclust)
+    plt.savefig(outdir + '/plot_ci.png')
 
-            if prop != None:
-                U, S, V = np.linalg.svd(X)
-                # NOTE in Python S is returned as diag(S) and V needs to be transposed (V.T)
-                V = V.T
-                s = S ** 2
-                sc = s / np.sum(s, axis=1)
-                a = np.where(np.cumsum(sc, axis=1) > prop)
-                a = a[0]+1
-                PC = U[:, 0:a] @ diag(S)[0:a, 0:a]
-                print('Pre-filtering using EOF retaining the first ' + str(a) + ' components done ...')
-            else:
-                PC = X
-                print('No EOF prefiltering ...')
-            #PC[:,0] = PC[:,0] * -1
-            #PC[:,-1] = PC[:,-1] * -1
-            r = X.shape[0]
-            c = X.shape[1]
-            Kens = np.ones((PC.shape[0], nclus, nsim))
-            K = np.zeros((PC.shape[0], nclus))
-            CI = np.zeros(nclus)
-            for NC in range(0,1,1):  # NC=1:length(nclus)
-                # clear MC mean_cluster mean_cluster2 k ACC ACCmax part
-                mean_cluster = np.zeros((nclus, c))
-                ACCmax = np.zeros((nclus, nsim))
-                k = np.zeros((PC.shape[0], nsim))
-                MC = np.zeros(((nclus) * c, nsim))
-                print(['K means clustering with ' + str(nclus) + ' clusters begins ...'])
-                for i in range(nsim):  # i=1:nsim;
-                    k[:, i] = KMeans(n_clusters=nclus, init='k-means++', n_init=1, max_iter=1000).fit_predict(X)  # k(:,i)=kmeans(PC,nclus(NC),'Maxiter',1000,'EmptyAction','singleton');
-                    for j in range(nclus):  # j=1:nclus(NC);
-                        lj = len(np.nonzero(k[:, i] == j)[0])  # length(find(k(:,i)==j)); Since it is a tuple, use [0] to grab data
-                        if(lj<1900 and lj >1000):
-                            print(lj)
-                        if lj > 1:
-                            mean_cluster[j, :] = np.mean(PC[np.nonzero(k[:, i] == j)[0],:], axis=0)  # mean(X(find(k(:,i)==j),:))
-                        else:
-                            mean_cluster[j, :] = X[k[:, i] == j]  # X(find(k(:,i)==j),:)
-                    #mean_cluster2 = stan(mean_cluster.conj().T, opt='s')
-                    nan_mean = np.nanmean(mean_cluster.T,axis=0)
-                    nan_std = np.nanstd(mean_cluster.T,axis=0,ddof=1)
-                    #nan_mean = np.ones((mean_cluster.shape[0],1)) * nan_mean
-                   # nan_std = np.ones((mean_cluster.shape[0],1)) * nan_std
-                    mean_cluster2 = (mean_cluster.T - nan_mean)/ nan_std
-                    #if(mean_cluster2.shape[1] > 1):
-                    #    temp = np.copy(mean_cluster2[:,0])
-                    #    mean_cluster2[:,0] = mean_cluster2[:,1]
-                    #   mean_cluster2[:,1] = temp
-                    mean_cluster = np.zeros((nclus, c))
-                    MC[:, i] = mean_cluster2.flatten('F')  # centroids stored in MC matrix
-                Kens[:, NC-1, :] = k
-                for i in range(nclus):  # i=1:nclus(NC);
-                    for j in range(nsim):  # j = 1:nsim;
-                        sample1 = MC[(i * c):(i + 1) * c, j]  # MC(((i - 1) * c) + 1:i * c, j);
-                        a = np.nonzero(j != np.arange(0, nsim))[0]  # find(j~ = [1:nsim]);
-                        sample2 = MC[:, a].reshape( c,(nsim - 1) * nclus, order='F').copy()  # reshape(MC(:, a), c, (nsim - 1) * nclus(NC))
-                        ind = np.isnan(sample1)
-                        sample1[ind] = 0
-                        ind = np.isnan(sample2)
-                        sample2[ind] = 0
-                        ACC = (1 / (c-1)) * sample1.conj().T @ sample2
-                        ACC = ACC.reshape(nclus, nsim - 1, order='F').copy()  # (ACC, nclus(NC), nsim - 1);
-                        ACCmax[i, j] = np.mean(ACC.max(0))  # mean(max(ACC));  # considering the mean instead the min
-                part = np.nonzero(np.mean(ACCmax, axis=0) == np.max(np.mean(ACCmax, axis=0)))[0]  # find(mean(ACCmax) == max(mean(ACCmax)))
-                CI[NC] = np.mean(ACCmax)  # Classification index for the partition ton 'nclus' clusters
-                if len(part) > 1: part = part[0]
-                K[:, NC] = np.squeeze(k[:, part])  # best partition that maximize the ACC with the nsim-1 other partitions
-            k_over[:,n-1] = K[:,0]
-            ci_over[n-1] = CI[0]
+    '''
+        Next we will create nsim rancom noise samples. We only perform this process once for the given set of clusters
+            and use the results for all cluster sizes
+        This is made from the standardized anomalies
+    '''
+    if os.path.exists(outdir + '/random.nc'):
+        tmp2 = xr.open_dataset(outdir + '/random.nc')
+        rsims = tmp2.rsims.data
+    else:
+        print('Creating random red noise series')
+        rsims = np.zeros((nr,nc,nsim))
+        #We will reduce nc through EOF
+        for i in range(nc):
+            p = ar1rand(tmpu[:,i],nsim)
+            rsims[:,i,:] = p
+        #Now save the data to a file called random.nc for future use if necessary to rerun
+        rsims_xr = xr.DataArray(rsims, dims=('days','variables','nsims'), name='rsims')
+        rsims_xr.to_netcdf(outdir + '/random.nc')
+        #
+    # #Now we will run kmeans with the red noise data for each cluster nsim times
+    CIcis = np.zeros((maxclust,nsim))
+    CIci = np.zeros((1,nsim))
+    citop = np.zeros((maxclust,1))
+    cibot = np.zeros((maxclust,1))
+    for i in range(1,maxclust+1,1):
+        #Check if our individual file exists
+        if os.path.exists(outdir + '/CIci_'+str(i)+'.nc'):
+            pass
+        else:
+            for j in range(nsim):
+                print('Cluster '+str(i) + ' Simulation ' + str(j))
+                sim = np.squeeze(rsims[:,:, j])
+                k, CIci[0, j] = kmeans_ci(sim, None, None, None, i, 100)
+            cici_xr = xr.DataArray(CIci, dims=('CI','nsim'), name='CIci')
+            cici_xr.to_netcdf(outdir + '/CIci_' + str(i) + '.nc')
+        tmp = xr.open_dataset(outdir + '/CIci_' + str(i) + '.nc')
+        CIcis[i-1,:]=tmp.CIci
+        cisort = np.sort(CIcis[i-1,:])
+        citop[i-1,0] = cisort[int(.90 * nsim)] # one - sided 90 % confidence interval
+        cibot[i-1,0] = cisort[0]
+    ax = CI.plot()
+    ax.set_ylabel('CI')
+    ax.set_xlabel('Cluster')
+    ax.set_title('Classifiability Index')
+    ax.set_xlim(1, maxclust)
+    for a in range(maxclust):
+        ax.plot((a+1,a+1),(citop[a,0],cibot[a,0]), 'red')
+    plt.savefig(outdir + '/plot_CIci.png')
+    #Now fill in the area
+    ax = CI.plot()
+    ax.set_ylabel('CI')
+    ax.set_xlabel('Cluster')
+    ax.set_title('Classifiability Index')
+    ax.set_xlim(1, maxclust)
+    for a in range(maxclust):
+        ax.plot((a+1,a+1),(citop[a,0],cibot[a,0]), 'red')
+    x = np.arange(1,11,1)
+    ax.fill_between(x,np.squeeze(citop),np.squeeze(cibot),color='silver')
+    plt.savefig(outdir + '/plot_CIci_shaded.png')
+
+
+
+
+
+
+
 
 
 
