@@ -2,7 +2,7 @@
 
 Adapted from the MATLAB equivalent kmeans toolbox used by Moron et al. Adapted from Michaelangeli et al. 1995
 
-* David Coe
+* David Coe *
 UMass Lowell - 2020 *
 
 # kmeans_ci2
