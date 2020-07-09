@@ -22,7 +22,7 @@ The graph above shows the CI value, 90% confidence interval (red line), and 90% 
 **Note:** Multiple values can fall above the 90% confidence interval. In these cases, it is pertinent to compare the clusters of the possible solutions to each other. 
 * Do the composites look similar?
 * Compare the values and their assignments between the different solutions. Does one value fall into different clusters depending on the solution?
-* If one value falls intoa different cluster depending on the solution, does the newly formed cluster it is in make sense, or is it just a derivation of another cluster? If so, the lower cluster solution may provide better answers.
+* If one value falls into a different cluster depending on the solution, does the newly formed cluster it is in make sense, or is it just a derivation of another cluster? If so, the lower cluster solution may provide better answers.
 
 # Examples
 era5_kmeans_xarray contains an example on how to run the functions. Sample data is provided to load into the functions. 
