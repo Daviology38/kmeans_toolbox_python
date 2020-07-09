@@ -25,8 +25,8 @@ The graph above shows the **CI** value, **90% confidence interval** (red line), 
 * If one value falls into a different cluster depending on the solution, does the newly formed cluster it is in make sense, or is it just a derivation of another cluster? If so, the lower cluster solution may provide better answers.
 
 # Examples
-**era5_kmeans_xarray** contains an example on how to run the functions. Sample data is provided to load into the functions. 
+* **era5_kmeans_xarray** contains an example on how to run the functions. Sample data is provided to load into the functions. 
 
-**kmeans_example** provides an example using randomly generated data. This is in jupyter notebook form for better accessibility.
+* **kmeans_example** provides an example using randomly generated data. This is in jupyter notebook form for better accessibility.
 
-**kmeans_era5** provides an example using the **testdata.xlsx** file to generate a kmeans study using sample climate data. It is similar to **kmeans_example**, but diverges when real data is used in the CI method (whereas **kmeans_example** performs the CI method with the randomly generated data).
+* **kmeans_era5** provides an example using the **testdata.xlsx** file to generate a kmeans study using sample climate data. It is similar to **kmeans_example**, but diverges when real data is used in the CI method (whereas **kmeans_example** performs the CI method with the randomly generated data).
