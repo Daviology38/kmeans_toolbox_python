@@ -28,3 +28,5 @@ The graph above shows the **CI** value, **90% confidence interval** (red line), 
 **era5_kmeans_xarray** contains an example on how to run the functions. Sample data is provided to load into the functions. 
 
 **kmeans_example** provides an example using randomly generated data. This is in jupyter notebook form for better accessibility.
+
+**kmeans_era5** provides an example using the **testdata.xlsx** file to generate a kmeans study using sample climate data. It is similar to **kmeans_example**, but diverges when real data is used in the CI method (whereas **kmeans_example** performs the CI method with the randomly generated data).
