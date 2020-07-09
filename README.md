@@ -1,6 +1,6 @@
 # kmeans_toolbox_python
 
-Adapted from the MATLAB equivalent kmeans toolbox used by Moron et al. Adapted from Michaelangeli et al. 1995
+Adapted from the MATLAB equivalent kmeans toolbox used by Moron et al 2010. Adapted from Michaelangeli et al. 1995
 
 *David* *Coe*
 *UMass* *Lowell* *-* *2020*
