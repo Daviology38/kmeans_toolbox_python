@@ -30,3 +30,12 @@ The graph above shows the **CI** value, **90% confidence interval** (red line), 
 * **kmeans_example** provides an example using randomly generated data. This is in jupyter notebook form for better accessibility.
 
 * **kmeans_era5** provides an example using the **testdata.xlsx** file to generate a kmeans study using sample climate data. It is similar to **kmeans_example**, but diverges when real data is used in the CI method (whereas **kmeans_example** performs the CI method with the randomly generated data).
+
+# References
+
+* Michelangeli, P.A., R. Vautard, and B. Legras, 1995: Weather regimes: recurrence and quasi-stationarity. J. Atmos. Sci., 52, 1237-1256. 
+
+* Moron, V., A. W. Robertson, M. N. Ward, and O. Ndiaye, 2008: Weather types and rainautumn rainfall over Senegal. Part I: Observational analysis. J. Climate, 21, 266–287, doi:10.1175/2007JCLI1601.1 
+
+* Roller, C.D., J.-H. Qian, L. Agel, M. Barlow, and V. Moron, 2016: Winter weather regimes in the Northeast United States. J. Climate, 29, 2963-2980.  
+
