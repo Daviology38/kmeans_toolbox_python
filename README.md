@@ -33,6 +33,8 @@ The graph above shows the **CI** value, **90% confidence interval** (red line), 
 
 # References
 
+* Coe, D., Barlow, M., Agel, L., Colby, F., Skinner, C., & Qian, J., (2021): Clustering Analysis of Autumn Weather Regimes in the Northeast U.S., Journal of Climate, 34,18, 7587-7605.
+
 * Michelangeli, P.A., R. Vautard, and B. Legras, 1995: Weather regimes: recurrence and quasi-stationarity. J. Atmos. Sci., 52, 1237-1256. 
 
 * Moron, V., A. W. Robertson, M. N. Ward, and O. Ndiaye, 2008: Weather types and rainautumn rainfall over Senegal. Part I: Observational analysis. J. Climate, 21, 266–287, doi:10.1175/2007JCLI1601.1 
